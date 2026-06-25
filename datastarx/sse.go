@@ -53,7 +53,7 @@ func (s *SSE) Send(event string, data ...string) error {
 		b.WriteByte('\n')
 	}
 	for _, d := range data {
-		for _, line := range strings.Split(d, "\n") {
+		for line := range strings.SplitSeq(d, "\n") { // Go 1.24 iterator: no slice alloc
 			b.WriteString("data: ")
 			b.WriteString(line)
 			b.WriteByte('\n')

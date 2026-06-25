@@ -36,7 +36,7 @@ func (s *SSE) patch(event, key, value string) error {
 	b.WriteString("event: ")
 	b.WriteString(event)
 	b.WriteByte('\n')
-	for _, line := range strings.Split(value, "\n") {
+	for line := range strings.SplitSeq(value, "\n") { // Go 1.24 iterator: no slice alloc
 		b.WriteString("data: ")
 		b.WriteString(key)
 		b.WriteByte(' ')
