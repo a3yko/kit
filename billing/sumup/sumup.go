@@ -59,21 +59,24 @@ type ChargeRequest struct {
 	Description string
 }
 
+// StatusSuccessful is the [ChargeResult.Status] a Charger sets on a completed
+// charge. Implementations should use this constant so [ChargeResult.Successful]
+// agrees with them.
+const StatusSuccessful = "SUCCESSFUL"
+
 // ChargeResult is the outcome of a charge attempt.
 type ChargeResult struct {
 	TransactionID string
-	Status        string // e.g. "SUCCESSFUL", "FAILED"
+	Status        string // StatusSuccessful on success; provider-specific otherwise
 }
 
 // Successful reports whether the charge completed.
-func (r ChargeResult) Successful() bool { return r.Status == "SUCCESSFUL" }
+func (r ChargeResult) Successful() bool { return r.Status == StatusSuccessful }
 
-// Charger performs a merchant-initiated charge against a saved card. Back this
-// with the official sumup-go SDK.
+// Charger performs a merchant-initiated charge against a saved card.
 //
-// TODO: confirm sumup-go exposes saved payment-instrument / MIT charging before
-// wiring the concrete implementation. If it does not, drive the checkouts API
-// directly with the stored card token inside the implementation.
+// See the sumupgo subpackage for a reference implementation backed by the
+// official SumUp Go SDK (Checkouts.Create + Process with the saved card token).
 type Charger interface {
 	Charge(ctx context.Context, req ChargeRequest) (ChargeResult, error)
 }

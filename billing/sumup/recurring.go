@@ -19,10 +19,12 @@ func NewEngine(charger Charger, store Store) *Engine {
 	return &Engine{charger: charger, store: store}
 }
 
-// ProcessDue charges every subscription due at now. A failure on one
-// subscription is recorded and skipped — it never aborts the rest. It returns
-// the number of successful charges and a joined error of any failures, so the
-// caller (e.g. an hourly worker) can log/alert without losing the batch.
+// ProcessDue charges every subscription due at now, sequentially (so it stays
+// well within payment-provider rate limits and avoids concurrent double-charge
+// races). A failure on one subscription is recorded and skipped — it never
+// aborts the rest. It returns the number of successful charges and a joined
+// error of any failures, so the caller (e.g. an hourly worker) can log/alert
+// without losing the batch.
 func (e *Engine) ProcessDue(ctx context.Context, now time.Time) (succeeded int, err error) {
 	due, derr := e.store.DueForRenewal(ctx, now)
 	if derr != nil {

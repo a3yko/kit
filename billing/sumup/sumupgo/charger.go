@@ -81,7 +81,7 @@ func (c *Charger) Charge(ctx context.Context, req billing.ChargeRequest) (billin
 		if success.TransactionID != nil {
 			txID = *success.TransactionID
 		}
-		return billing.ChargeResult{TransactionID: txID, Status: "SUCCESSFUL"}, nil
+		return billing.ChargeResult{TransactionID: txID, Status: billing.StatusSuccessful}, nil
 	}
 
 	return billing.ChargeResult{Status: "FAILED"}, nil
