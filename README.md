@@ -16,8 +16,13 @@ changes whenever I need them.** Pin a commit if you depend on it.
 | `authz` | Tiny generic role→permission core (`Roles[R].Can/CanAny/CanAll`). Resource-scoped rules stay in your app and compose with a permission check. | early |
 | `billing/sumup` | Recurring-subscription + saved-card (merchant-initiated) billing **orchestration** on top of the official [`sumup/sumup-go`](https://github.com/sumup/sumup-go) SDK — the bit the SDK deliberately doesn't do. Core is SDK-free (you implement `Charger`/`Store`); `billing/sumup/sumupgo` is an example `Charger` backed by the SDK. | early |
 | `datastarx` | Minimal Server-Sent-Events helpers for driving [Datastar](https://data-star.dev) responses from `net/http`. | early |
+| `storage` | Thin S3-compatible object-store wrapper (Cloudflare R2 / AWS S3 / MinIO): put, get, delete, presigned GET/PUT URLs. Built on aws-sdk-go-v2 with the checksum fix R2 needs. | early |
 
-Planned (extracted as my apps need them): `storage` (R2/S3).
+> **Dependency weight:** `billing/sumup/sumupgo` pulls in `sumup-go` and
+> `storage` pulls in `aws-sdk-go-v2`. They live behind their own import paths, so
+> the Go build only compiles what you import — but as one module they all share
+> `go.sum`. If that bloat ever matters, the heavy adapters can move to their own
+> modules later.
 
 ## Design notes
 
