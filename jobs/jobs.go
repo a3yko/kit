@@ -130,11 +130,7 @@ func (q *Queue) Work(ctx context.Context, concurrency int) error {
 	}
 	var wg sync.WaitGroup
 	for range concurrency {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			q.worker(ctx)
-		}()
+		wg.Go(func() { q.worker(ctx) }) // Go 1.25: Add(1)+go+Done() in one call
 	}
 	wg.Wait()
 	return ctx.Err()
