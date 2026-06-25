@@ -65,7 +65,9 @@ func NewR2(accountID, accessKeyID, secretAccessKey, bucket string) *Bucket {
 	})
 }
 
-// Put uploads body under key. contentType may be empty.
+// Put uploads body under key. contentType may be empty. body should be seekable
+// (e.g. *os.File, *bytes.Reader, *strings.Reader) so request signing can hash and
+// rewind it; buffer an unknown-length stream before calling.
 func (b *Bucket) Put(ctx context.Context, key string, body io.Reader, contentType string) error {
 	in := &s3.PutObjectInput{Bucket: &b.name, Key: &key, Body: body}
 	if contentType != "" {

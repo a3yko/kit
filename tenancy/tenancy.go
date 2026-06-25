@@ -1,5 +1,6 @@
-// Package tenancy resolves the current tenant from an HTTP request — by custom
-// domain first, then by subdomain — and carries it on the request context.
+// Package tenancy resolves the current tenant from an HTTP request — a subdomain
+// of your apex via BySubdomain, any other host via ByCustomDomain — and carries
+// it on the request context.
 //
 // The resolution logic and middleware live here; your app supplies the lookups
 // ([Lookup]) that map a host/subdomain to your tenant id.
@@ -61,17 +62,19 @@ func NewResolver(root string, lookup Lookup) *Resolver {
 	return &Resolver{root: root, lookup: lookup}
 }
 
-// Resolve returns the tenant id for host. Custom domain takes precedence over
-// subdomain; it returns ErrNoTenant if neither matches.
+// Resolve returns the tenant id for host. A host that is a subdomain of the apex
+// is resolved via BySubdomain (the common case, a single lookup); any other host
+// — or an unknown subdomain — falls back to ByCustomDomain. It returns
+// ErrNoTenant if neither matches. A lookup that errors is treated as "no match".
 func (r *Resolver) Resolve(ctx context.Context, host string) (string, error) {
 	host = stripPort(host)
-	if id, err := r.lookup.ByCustomDomain(ctx, host); err == nil && id != "" {
-		return id, nil
-	}
 	if sub, ok := Subdomain(host, r.root); ok {
 		if id, err := r.lookup.BySubdomain(ctx, sub); err == nil && id != "" {
 			return id, nil
 		}
+	}
+	if id, err := r.lookup.ByCustomDomain(ctx, host); err == nil && id != "" {
+		return id, nil
 	}
 	return "", ErrNoTenant
 }

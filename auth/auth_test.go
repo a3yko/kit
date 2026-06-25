@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -71,6 +72,26 @@ func TestSessionLifecycle(t *testing.T) {
 	}
 	if _, err := mgr.Authenticate(context.Background(), r); err != ErrNoSession {
 		t.Errorf("after Revoke, Authenticate err = %v, want ErrNoSession", err)
+	}
+}
+
+// errStore returns a non-ErrNoSession failure from Find.
+type errStore struct{ err error }
+
+func (s errStore) Save(context.Context, Session) error           { return nil }
+func (s errStore) Delete(context.Context, string) error          { return nil }
+func (s errStore) Find(context.Context, string) (Session, error) { return Session{}, s.err }
+
+func TestAuthenticatePropagatesStoreErrors(t *testing.T) {
+	boom := errors.New("db down")
+	mgr := NewManager(errStore{err: boom}, Insecure())
+
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.AddCookie(&http.Cookie{Name: "session", Value: "x"})
+
+	_, err := mgr.Authenticate(context.Background(), r)
+	if errors.Is(err, ErrNoSession) || !errors.Is(err, boom) {
+		t.Errorf("store error should propagate (wrapped), not become ErrNoSession; got %v", err)
 	}
 }
 

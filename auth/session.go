@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -74,16 +75,22 @@ func (m *Manager) Issue(ctx context.Context, w http.ResponseWriter, userID strin
 	return s, nil
 }
 
-// Authenticate reads the session cookie and returns the valid session, or
-// ErrNoSession. An expired session is deleted and reported as absent.
+// Authenticate reads the session cookie and returns the valid session. It
+// returns ErrNoSession when there is no cookie, no matching session, or the
+// session has expired (expired sessions are deleted). Unexpected store errors
+// are returned wrapped, so a backing-store outage surfaces as an error rather
+// than masquerading as a logged-out user — check with errors.Is(err, ErrNoSession).
 func (m *Manager) Authenticate(ctx context.Context, r *http.Request) (Session, error) {
 	c, err := r.Cookie(m.cookieName)
 	if err != nil {
 		return Session{}, ErrNoSession
 	}
 	s, err := m.store.Find(ctx, c.Value)
-	if err != nil {
+	switch {
+	case errors.Is(err, ErrNoSession):
 		return Session{}, ErrNoSession
+	case err != nil:
+		return Session{}, fmt.Errorf("auth: load session: %w", err)
 	}
 	if s.Expired(time.Now()) {
 		_ = m.store.Delete(ctx, s.ID)
