@@ -14,6 +14,9 @@ changes whenever I need them.** Pin a commit if you depend on it.
 | `auth` | Session-based auth: bcrypt password hash/verify, random tokens, and a cookie-backed session `Manager` + middleware. You implement `SessionStore`; sessions key off an opaque user id. | early |
 | `tenancy` | Resolve the current tenant from a request — custom domain → subdomain — onto the context, with middleware. You implement the `Lookup`. | early |
 | `authz` | Tiny generic role→permission core (`Roles[R].Can/CanAny/CanAll`). Resource-scoped rules stay in your app and compose with a permission check. | early |
+| `migrate` | Dependency-light SQL migration runner over an `fs.FS` of `*.up.sql` files — Rails' `db:migrate`, DB-only. | early |
+| `jobs` | Postgres-backed background job queue + worker (`FOR UPDATE SKIP LOCKED`, retries w/ backoff) — Rails' Solid Queue, no Redis. | early |
+| `cache` | Postgres-backed key/value cache with TTL — Rails' Solid Cache, no Redis. | early |
 | `billing/sumup` | Recurring-subscription + saved-card (merchant-initiated) billing **orchestration** on top of the official [`sumup/sumup-go`](https://github.com/sumup/sumup-go) SDK — the bit the SDK deliberately doesn't do. Core is SDK-free (you implement `Charger`/`Store`); `billing/sumup/sumupgo` is an example `Charger` backed by the SDK. | early |
 | `datastarx` | Minimal Server-Sent-Events helpers for driving [Datastar](https://data-star.dev) responses from `net/http`. | early |
 | `storage` | Thin S3-compatible object-store wrapper (Cloudflare R2 / AWS S3 / MinIO): put, get, delete, presigned GET/PUT URLs. Built on aws-sdk-go-v2 with the checksum fix R2 needs. | early |
