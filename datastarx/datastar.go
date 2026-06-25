@@ -1,6 +1,11 @@
 package datastarx
 
-// Datastar SSE event names and data-line prefixes.
+import (
+	"io"
+	"strings"
+)
+
+// Datastar SSE event names.
 //
 // These track the Datastar protocol version you run — they were renamed across
 // releases (the older "merge-fragments" / "merge-signals" became
@@ -11,14 +16,37 @@ const (
 	EventPatchSignals  = "datastar-patch-signals"
 )
 
-// PatchElements streams an HTML fragment for Datastar to patch into the DOM.
-// Datastar matches/merges by the element ids in the markup.
+// PatchElements streams an HTML fragment for Datastar to patch into the DOM
+// (matched/merged by element id). Multi-line HTML is handled correctly.
 func (s *SSE) PatchElements(html string) error {
-	return s.Send(EventPatchElements, "elements "+html)
+	return s.patch(EventPatchElements, "elements", html)
 }
 
 // PatchSignals streams a JSON object for Datastar to merge into its signal
 // store, e.g. `{"count": 3}`.
 func (s *SSE) PatchSignals(jsonObject string) error {
-	return s.Send(EventPatchSignals, "signals "+jsonObject)
+	return s.patch(EventPatchSignals, "signals", jsonObject)
+}
+
+// patch writes one Datastar event whose value may span multiple lines. Datastar
+// requires the data key (e.g. "elements") on every "data:" line, so we prefix
+// each line — not just the first.
+func (s *SSE) patch(event, key, value string) error {
+	var b strings.Builder
+	b.WriteString("event: ")
+	b.WriteString(event)
+	b.WriteByte('\n')
+	for _, line := range strings.Split(value, "\n") {
+		b.WriteString("data: ")
+		b.WriteString(key)
+		b.WriteByte(' ')
+		b.WriteString(line)
+		b.WriteByte('\n')
+	}
+	b.WriteByte('\n')
+
+	if _, err := io.WriteString(s.w, b.String()); err != nil {
+		return err
+	}
+	return s.rc.Flush()
 }

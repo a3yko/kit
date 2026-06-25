@@ -22,6 +22,26 @@ func TestPatchSignals(t *testing.T) {
 	}
 }
 
+func TestPatchElementsKeysEveryLine(t *testing.T) {
+	rec := httptest.NewRecorder()
+	sse, err := NewSSE(rec)
+	if err != nil {
+		t.Fatalf("NewSSE: %v", err)
+	}
+	if err := sse.PatchElements("<div>\n  <span>hi</span>\n</div>"); err != nil {
+		t.Fatalf("PatchElements: %v", err)
+	}
+
+	// Datastar needs the "elements" key on every data line, not just the first.
+	want := "event: datastar-patch-elements\n" +
+		"data: elements <div>\n" +
+		"data: elements   <span>hi</span>\n" +
+		"data: elements </div>\n\n"
+	if got := rec.Body.String(); !strings.Contains(got, want) {
+		t.Errorf("body = %q\nwant contains %q", got, want)
+	}
+}
+
 func TestSendSplitsMultilineData(t *testing.T) {
 	rec := httptest.NewRecorder()
 	sse, err := NewSSE(rec)
