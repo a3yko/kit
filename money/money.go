@@ -13,6 +13,23 @@ import (
 // ErrInvalid is returned by Cents for an unparseable amount.
 var ErrInvalid = errors.New("money: invalid amount")
 
+// DefaultCurrency is the fallback used when a currency is unspecified.
+const DefaultCurrency = "USD"
+
+// SupportedCurrencies are the currencies Format renders with a symbol — the set
+// an app should offer for entry and as a base currency. The first is the default.
+var SupportedCurrencies = []string{"USD", "EUR", "GBP"}
+
+// Supported reports whether code is one of SupportedCurrencies (case-insensitive).
+func Supported(code string) bool {
+	for _, c := range SupportedCurrencies {
+		if strings.EqualFold(c, code) {
+			return true
+		}
+	}
+	return false
+}
+
 // Cents parses a decimal money string into integer cents WITHOUT float rounding,
 // e.g. "1234.56" -> 123456, "-5" -> -500, "10.5" -> 1050, "1,000" -> 100000. It
 // accepts an optional sign, thousands separators, and up to two fractional digits
