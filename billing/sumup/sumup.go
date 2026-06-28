@@ -29,10 +29,12 @@ const (
 	Yearly  Interval = "yearly"
 )
 
-// Next returns the next billing time after t for this interval.
+// Next returns the next billing time after t for this interval. Recognised
+// cadences are Weekly, Monthly, Quarterly, SemiAnnually and Yearly; anything
+// else falls back to monthly.
 func (i Interval) Next(t time.Time) time.Time {
-	if i == Yearly {
-		return t.AddDate(1, 0, 0)
+	if next, ok := nextBuiltin(i, t); ok {
+		return next
 	}
 	return t.AddDate(0, 1, 0) // default: monthly
 }
