@@ -13,6 +13,7 @@ changes whenever I need them.** Pin a commit if you depend on it.
 |---------|--------------|--------|
 | `auth` | Session-based auth: bcrypt password hash/verify, random tokens, and a cookie-backed session `Manager` + middleware. You implement `SessionStore`; sessions key off an opaque user id. | early |
 | `tenancy` | Resolve the current tenant from a request — custom domain → subdomain — onto the context, with middleware. You implement the `Lookup`. | early |
+| `csrf` | Same-origin CSRF protection as `net/http` middleware — no tokens, no session storage, no template changes. Unsafe methods carrying a browser `Origin`/`Referer` must match the request's own `Host`, so subdomains and custom domains work with no allowlist; requests with neither header (signature-verified webhooks, curl) pass through. Pairs with a `SameSite=Lax` session cookie. | early |
 | `authz` | Tiny generic role→permission core (`Roles[R].Can/CanAny/CanAll`). Resource-scoped rules stay in your app and compose with a permission check. | early |
 | `migrate` | Dependency-light SQL migration runner over an `fs.FS` of `*.up.sql` files — Rails' `db:migrate`, DB-only. | early |
 | `jobs` | Postgres-backed background job queue + worker (`FOR UPDATE SKIP LOCKED`, retries w/ backoff, lease-based crash recovery) — Rails' Solid Queue, no Redis. Run-later scheduling, priorities, deduplicated enqueue (`WithUnique`) and self-rescheduling periodic jobs (`RegisterPeriodic`) for cron-free recurring work. | early |
